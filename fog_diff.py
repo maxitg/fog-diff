@@ -9,7 +9,8 @@ from typing import Dict, Tuple
 
 import numpy as np
 
-MAP_WIDTH = 512
+# Constants and file format hints were taken from
+# https://github.com/CaviarChen/fog-machine/blob/272528056ea47d95e9d784227634cc8ece32f22e/editor/src/utils/FogMap.ts
 TILE_WIDTH_OFFSET = 7
 TILE_WIDTH = 1 << TILE_WIDTH_OFFSET
 TILE_HEADER_LEN = TILE_WIDTH**2
@@ -17,9 +18,6 @@ TILE_HEADER_SIZE = TILE_HEADER_LEN * 2
 BLOCK_BITMAP_SIZE = 512
 BLOCK_EXTRA_DATA = 3
 BLOCK_SIZE = BLOCK_BITMAP_SIZE + BLOCK_EXTRA_DATA
-BITMAP_WIDTH_OFFSET = 6
-BITMAP_WIDTH = 1 << BITMAP_WIDTH_OFFSET
-ALL_OFFSET = TILE_WIDTH_OFFSET + BITMAP_WIDTH_OFFSET
 
 
 class Tile:
