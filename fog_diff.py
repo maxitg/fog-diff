@@ -86,8 +86,12 @@ class Tile:
         blocks = {}
         block_extras = {}
 
-        for (x, y), block1 in tile1.blocks.items():
-            block2 = tile2.blocks[(x, y)]
+        for (x, y), block2 in tile2.blocks.items():
+            if (x, y) not in tile1.blocks:
+                blocks[(x, y)] = block2
+                block_extras[(x, y)] = tile2.block_extras[(x, y)]
+                continue
+            block1 = tile1.blocks[(x, y)]
             diff_block = cls.diff_blocks(block1, block2)
 
             # If diff_block is empty, skip it
