@@ -109,59 +109,6 @@ class Tile:
         # Convert the difference back to bytes
         return diff.to_bytes(BLOCK_BITMAP_SIZE, byteorder="big")
 
-    # def __init__(self, filename: str):
-    #    if not filename:
-    #        return
-
-
-#
-#    self.raw_data = open(filename, 'rb').read()
-#    self.data = zlib.decompress(self.raw_data)
-#
-#    self.header = np.frombuffer(self.data[:TILE_HEADER_SIZE], dtype=np.uint16)
-#
-#    self.blocks = {}
-#    self.block_extras = {}
-#
-#    # print(f"Length of {filename}: {len(self.header)}")
-#
-#    # The block represents a grid of pixels TILE_WIDTH x TILE_WIDTH.
-#    # Print the grid as x's and spaces.
-#    for i in range(len(self.header)):
-#        block_idx = self.header[i]
-#        if block_idx > 0:
-#            block_x = i % TILE_WIDTH
-#            block_y = i // TILE_WIDTH
-#            start_offset = TILE_HEADER_SIZE + (block_idx - 1) * BLOCK_SIZE
-#            end_offset = start_offset + BLOCK_SIZE
-#            block_data = self.data[start_offset:end_offset]
-#
-#            block_pixels = self.convert_block_data_to_bools(block_data)
-#
-#            self.blocks[(block_x, block_y)] = block_pixels
-#            self.block_extras[block_idx] = block_data[BLOCK_BITMAP_SIZE:]
-#
-#            # print(f"Block {i}: {block_idx}, x: {block_x}, y: {block_y}")
-#            # print(f"Data length: {len(block_pixels)}")
-#            # for i in range(64):
-#            #     for j in range(64):
-#            #         print('x' if block_pixels[i * 64 + j] else ' ', end='')
-#            #     print()
-#
-# @classmethod
-# def diff(cls, tile1, tile2):
-#
-
-# def convert_block_data_to_bools(self, block_data):
-#    bools = []
-#    for byte in block_data[:BLOCK_BITMAP_SIZE]:  # Only consider bitmap part
-#        for bit in range(8):
-#            bools.append((byte & (1 << bit)) != 0)
-#    return bools
-
-
-# Replace these paths with your actual file paths
-
 
 tile_file_1 = sys.argv[1]
 tile_file_2 = sys.argv[2]
@@ -171,6 +118,3 @@ tile1 = Tile.from_file(tile_file_1)
 tile2 = Tile.from_file(tile_file_2)
 diff = Tile.diff(tile1, tile2)
 diff.to_file(diff_file)
-
-# diff_data = diff_tiles(tile_file_1, tile_file_2)
-# save_diff(diff_data, diff_file)
