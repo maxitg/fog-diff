@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-import pathlib
 import shutil
 import sys
 import zlib
+from pathlib import Path
+from typing import Dict, Tuple
 
 import numpy as np
 
@@ -22,7 +23,11 @@ ALL_OFFSET = TILE_WIDTH_OFFSET + BITMAP_WIDTH_OFFSET
 
 
 class Tile:
-    def __init__(self, blocks, block_extras):
+    def __init__(
+        self,
+        blocks: Dict[Tuple[int, int], bytes],
+        block_extras: Dict[Tuple[int, int], bytes],
+    ):
         self.blocks = blocks
         self.block_extras = block_extras
 
@@ -45,11 +50,11 @@ class Tile:
         self.raw_data = zlib.compress(self.data)
 
     @property
-    def blocks_count(self):
+    def blocks_count(self) -> int:
         return len(self.blocks)
 
     @classmethod
-    def from_file(cls, filename: str):
+    def from_file(cls, filename: Path) -> "Tile":
         raw_data = open(filename, "rb").read()
         data = zlib.decompress(raw_data)
         header = np.frombuffer(data[:TILE_HEADER_SIZE], dtype=np.uint16)
@@ -71,7 +76,7 @@ class Tile:
 
         return cls(blocks, block_extras)
 
-    def to_file(self, filename: str):
+    def to_file(self, filename: Path) -> None:
         """
         Save the tile to a file.
         """
@@ -79,7 +84,7 @@ class Tile:
             f.write(self.raw_data)
 
     @classmethod
-    def diff(cls, tile1, tile2):
+    def diff(cls, tile1: "Tile", tile2: "Tile") -> "Tile":
         """
         Compute the difference between two tiles.
         """
@@ -104,7 +109,7 @@ class Tile:
         return cls(blocks, block_extras)
 
     @staticmethod
-    def diff_blocks(block1, block2):
+    def diff_blocks(block1: bytes, block2: bytes) -> bytes:
         """
         Compute the difference between two blocks.
         """
@@ -121,7 +126,7 @@ class Tile:
         return diff.to_bytes(BLOCK_BITMAP_SIZE, byteorder="big")
 
 
-def diff_files(first, second, output):
+def diff_files(first: Path, second: Path, output: Path) -> None:
     tile1 = Tile.from_file(first)
     tile2 = Tile.from_file(second)
     diff = Tile.diff(tile1, tile2)
@@ -129,13 +134,13 @@ def diff_files(first, second, output):
         diff.to_file(output)
 
 
-def diff_directories(first, second, output):
+def diff_directories(first: Path, second: Path, output: Path) -> None:
     os.makedirs(output)
 
-    for second_path in pathlib.Path(second).rglob("*"):
+    for second_path in Path(second).rglob("*"):
         relative_path = second_path.relative_to(second)
-        first_path = pathlib.Path(first) / relative_path
-        output_path = pathlib.Path(output) / relative_path
+        first_path = Path(first) / relative_path
+        output_path = Path(output) / relative_path
 
         if not first_path.exists():
             shutil.copy(second_path, output_path)
@@ -144,25 +149,25 @@ def diff_directories(first, second, output):
         diff_files(first_path, second_path, output_path)
 
 
-def main(first, second, output):
-    if not pathlib.Path(first).exists():
+def main(first: str, second: str, output: str):
+    if not Path(first).exists():
         print(f"{first} does not exist.")
         return 1
 
-    if not pathlib.Path(second).exists():
+    if not Path(second).exists():
         print(f"{second} does not exist.")
         return 1
 
-    if pathlib.Path(output).exists():
+    if Path(output).exists():
         print(f"{output} already exists.")
         return 1
 
-    if pathlib.Path(first).is_dir() and pathlib.Path(second).is_dir():
-        diff_directories(first, second, output)
+    if Path(first).is_dir() and Path(second).is_dir():
+        diff_directories(Path(first), Path(second), Path(output))
         return 0
 
-    if pathlib.Path(first).is_file() and pathlib.Path(second).is_file():
-        diff_files(first, second, output)
+    if Path(first).is_file() and Path(second).is_file():
+        diff_files(Path(first), Path(second), Path(output))
         return 0
 
     print(f"Both {first} and {second} must be either files or directories.")
