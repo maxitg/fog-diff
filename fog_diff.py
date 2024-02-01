@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import os
+import pathlib
+import shutil
 import sys
 import zlib
 
@@ -40,6 +43,10 @@ class Tile:
 
         # Make raw data. The raw data is the compressed data.
         self.raw_data = zlib.compress(self.data)
+
+    @property
+    def blocks_count(self):
+        return len(self.blocks)
 
     @classmethod
     def from_file(cls, filename: str):
@@ -110,11 +117,57 @@ class Tile:
         return diff.to_bytes(BLOCK_BITMAP_SIZE, byteorder="big")
 
 
-tile_file_1 = sys.argv[1]
-tile_file_2 = sys.argv[2]
-diff_file = sys.argv[3]
+def diff_files(first, second, output):
+    tile1 = Tile.from_file(first)
+    tile2 = Tile.from_file(second)
+    diff = Tile.diff(tile1, tile2)
+    if diff.blocks_count > 0:
+        diff.to_file(output)
 
-tile1 = Tile.from_file(tile_file_1)
-tile2 = Tile.from_file(tile_file_2)
-diff = Tile.diff(tile1, tile2)
-diff.to_file(diff_file)
+
+def diff_directories(first, second, output):
+    os.makedirs(output)
+
+    for second_path in pathlib.Path(second).rglob("*"):
+        relative_path = second_path.relative_to(second)
+        first_path = pathlib.Path(first) / relative_path
+        output_path = pathlib.Path(output) / relative_path
+
+        if not first_path.exists():
+            shutil.copy(second_path, output_path)
+            continue
+
+        diff_files(first_path, second_path, output_path)
+
+
+def main(first, second, output):
+    if not pathlib.Path(first).exists():
+        print(f"{first} does not exist.")
+        return 1
+
+    if not pathlib.Path(second).exists():
+        print(f"{second} does not exist.")
+        return 1
+
+    if pathlib.Path(output).exists():
+        print(f"{output} already exists.")
+        return 1
+
+    if pathlib.Path(first).is_dir() and pathlib.Path(second).is_dir():
+        diff_directories(first, second, output)
+        return 0
+
+    if pathlib.Path(first).is_file() and pathlib.Path(second).is_file():
+        diff_files(first, second, output)
+        return 0
+
+    print(f"Both {first} and {second} must be either files or directories.")
+    return 1
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print(f"Usage: {sys.argv[0]} <first> <second> <output>")
+        sys.exit(1)
+
+    sys.exit(main(*sys.argv[1:]))
