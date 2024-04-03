@@ -54,7 +54,11 @@ class Tile:
     @classmethod
     def from_file(cls, filename: Path) -> "Tile":
         raw_data = open(filename, "rb").read()
-        data = zlib.decompress(raw_data)
+        try:
+            data = zlib.decompress(raw_data)
+        except zlib.error:
+            print(f"Failed to decompress {filename}.")
+            raise
         header = np.frombuffer(data[:TILE_HEADER_SIZE], dtype=np.uint16)
 
         blocks = {}
